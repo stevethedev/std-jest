@@ -19,16 +19,19 @@ function createTransformer() {
     const testCases = getCommentCode(src)
       .map(
         (code, id) =>
-          `test("comment-test-case #${id}", async () => {\n${code}\n});`,
+          `/* istanbul ignore next */\ntest("comment-test-case #${id}", async () => {\n${code}\n});`,
       )
       .join("\n");
 
     const combinedCode = `${src}
+        /* c8 ignore start */
+        /* istanbul ignore next */
         ;(() => {
             describe("comment-test-cases", () => {
               ${testCases || "test.skip('no comment test cases found', () => {})"}
             });
         })();
+        /* c8 ignore end */
         `;
 
     const code = buildSource(filename, combinedCode, true);
