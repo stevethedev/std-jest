@@ -30,9 +30,9 @@ jobs:
       - name: Check Changeset Status
         run: |
           if npx changeset status; then
-            echo "hasChangesets=true" >> "$GITHUB_OUTPUT"
-          else
             echo "hasChangesets=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "hasChangesets=true" >> "$GITHUB_OUTPUT"
           fi
 
       - name: Changesets
