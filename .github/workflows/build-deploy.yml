@@ -26,10 +26,6 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Is there a changeset?
-        if: ${{ steps.check-changesets.outputs.hasChangesets == 'true' }}
-        run: echo "There is a changeset"
-
       - name: Changesets
         uses: changesets/action@v1
         env:
