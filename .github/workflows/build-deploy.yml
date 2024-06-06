@@ -17,6 +17,10 @@ jobs:
     outputs:
       hasChangesets: ${{ steps.check-changesets.outputs.hasChangesets }}
     steps:
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 20
+
       - name: Checkout code
         uses: actions/checkout@v4
 
@@ -42,6 +46,10 @@ jobs:
     needs: check-changesets
     if: ${{ needs.check-changesets.outputs.hasChangesets != 'true' }}
     steps:
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 20
+
       - name: Checkout code
         uses: actions/checkout@v4
 
@@ -62,12 +70,15 @@ jobs:
     runs-on: ubuntu-latest
     needs: build
     steps:
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 20
+
       - name: Download artifact
         uses: actions/download-artifact@v4
         with:
           name: build
 
-      - name: Deploy to NPM
-        run: npm publish dist --access public
-        env:
-          NODE_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}
+      - uses: JS-DevTools/npm-publish@v3
+        with:
+          token: ${{ secrets.NPM_TOKEN }}
