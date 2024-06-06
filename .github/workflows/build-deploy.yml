@@ -28,11 +28,12 @@ jobs:
         run: npm ci
 
       - name: Check Changeset Status
+        id: check-changesets
         run: |
           if npx changeset status; then
-            echo "hasChangesets=false" >> "$GITHUB_OUTPUT"
-          else
             echo "hasChangesets=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "hasChangesets=false" >> "$GITHUB_OUTPUT"
           fi
 
       - name: Changesets
