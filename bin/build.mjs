@@ -16,6 +16,7 @@ async function main() {
   const entryPoints = await readdir(srcDir("entry-points"));
 
   await cp(rootDir("package.json"), distDir("package.json"));
+  await cp(rootDir("package-lock.json"), distDir("package-lock.json"));
   for (const entryPoint of entryPoints) {
     const inputFp = srcDir("entry-points", entryPoint);
     const outputFp = distDir();
