@@ -29,7 +29,7 @@ jobs:
 
       - name: Check Changeset Status
         run: |
-          if npx changesets status; then
+          if npx changeset status; then
             echo "hasChangesets=true" >> "$GITHUB_OUTPUT"
           else
             echo "hasChangesets=false" >> "$GITHUB_OUTPUT"
@@ -44,7 +44,7 @@ jobs:
     name: Build
     runs-on: ubuntu-latest
     needs: check-changesets
-    if: ${{ needs.check-changesets.outputs.hasChangesets != 'true' }}
+    if: ${{ needs.check-changesets.outputs.hasChangesets == 'false' }}
     steps:
       - uses: actions/setup-node@v3
         with:
