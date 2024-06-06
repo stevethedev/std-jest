@@ -36,6 +36,13 @@ jobs:
             echo "hasChangesets=false" >> "$GITHUB_OUTPUT"
           fi
 
+      - name: Debug output
+        run: echo "hasChangesets=${{ steps.check-changesets.outputs.hasChangesets }}"
+
+      - name: Is there a changeset?
+        if: ${{ steps.check-changesets.outputs.hasChangesets == 'true' }}
+        run: echo "There is a changeset"
+
       - name: Changesets
         uses: changesets/action@v1
         env:
