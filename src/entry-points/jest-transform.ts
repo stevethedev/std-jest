@@ -1,5 +1,6 @@
+import { type TransformedSource, type TransformOptions } from "@jest/transform";
 import * as acorn from "acorn";
-import * as ts from "typescript";
+import ts from "typescript";
 // @ts-expect-error - comment-parser types cannot be imported for some reason.
 import * as commentParser from "comment-parser";
 import esbuild from "esbuild";
@@ -15,37 +16,70 @@ export default { createTransformer };
  * ```
  */
 function createTransformer() {
-  function process(src: string, filename: string): { code: string } {
-    const testCases = getCommentCode(src)
-      .map(
-        (code, id) =>
-          `/* istanbul ignore next */\ntest("comment-test-case #${id}", async () => {\n${code}\n});`,
-      )
-      .join("\n");
+  /**
+   * Process the source code.
+   * @param sourceCode - The source code to process
+   * @param filename - The filename of the source code
+   * @param transformOptions - The options for the transform
+   * @returns The transformed source code
+   */
+  function process(
+    sourceCode: string,
+    filename: string,
+    transformOptions: TransformOptions,
+  ): TransformedSource {
+    void transformOptions;
+    const combinedCode = getModifiedCode(sourceCode);
+    const builtSource = buildSource(filename, combinedCode);
 
-    const combinedCode = `${src}
-        /* c8 ignore start */
-        /* istanbul ignore next */
-        ;(() => {
-            describe("comment-test-cases", () => {
-              ${testCases || "test.skip('no comment test cases found', () => {})"}
-            });
-        })();
-        /* c8 ignore end */
-        `;
-
-    const code = buildSource(filename, combinedCode, true);
-    return { code };
+    return {
+      code: builtSource.code ?? "",
+      map: builtSource.map && {
+        ...JSON.parse(builtSource.map),
+      },
+    };
   }
 
   return { process };
 }
 
+function getModifiedCode(sourceCode: string): string {
+  const testCases = getCommentCode(sourceCode).map(testCase);
+  const testCode = testDescription(testCases);
+
+  return `${sourceCode}\n${testCode}`;
+}
+
+function testDescription(testCases: string[]): string {
+  if (testCases.length === 0) {
+    return "";
+  }
+
+  return `
+    /* c8 ignore start */
+    /* istanbul ignore next */
+    ;(() => {
+      describe${testCases.length === 0 ? ".skip" : ""}("comment-test-cases", () => {
+        ${testCases.join("\n")}
+      });
+    })();
+    /* c8 ignore end */
+  `;
+}
+
+function testCase(code: string, id: number): string {
+  return `
+  /* istanbul ignore next */
+  test("comment-test-case #${id}", async () => {
+      ${code}
+  });
+  `;
+}
+
 function buildSource(
   filename: string,
   sourceCode: string,
-  createSourceMap: boolean = false,
-): string {
+): { code?: string; map?: string } {
   const buildResult = esbuild.buildSync({
     stdin: {
       contents: sourceCode,
@@ -57,11 +91,22 @@ function buildSource(
     target: "node20",
     write: false,
     format: "cjs",
-    sourcemap: createSourceMap,
+    outfile: filename,
+    sourcemap: "both",
     external: ["*"],
   });
 
-  return buildResult.outputFiles[0].text;
+  const code = buildResult.outputFiles.find(({ path }) =>
+    path.endsWith(filename),
+  )?.text;
+  const map = buildResult.outputFiles.find(({ path }) =>
+    path.endsWith(`${filename}.map`),
+  )?.text;
+
+  return {
+    code,
+    map,
+  };
 }
 
 function getCommentCode(sourceCode: string): string[] {
