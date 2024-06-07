@@ -3,7 +3,7 @@ import * as acorn from "acorn";
 import ts from "typescript";
 // @ts-expect-error - comment-parser types cannot be imported for some reason.
 import * as commentParser from "comment-parser";
-import esbuild from "esbuild";
+import esbuild, { Format } from "esbuild";
 
 export default { createTransformer };
 
@@ -67,11 +67,56 @@ function testDescription(testCases: string[]): string {
   `;
 }
 
+/**
+ * Create a test case
+ * @param code - The code to test
+ * @param id - The id of the test case
+ *
+ * @example Handle the `import` keyword.
+ * ```typescript
+ * import { readFileSync } from "node:fs";
+ * expect(readFileSync).toBeDefined();
+ * ```
+ *
+ * @example Handle the `require` function.
+ * ```typescript
+ * const { readFileSync } = require("fs");
+ * expect(readFileSync).toBeDefined();
+ * ```
+ *
+ * @example Handle the `export` keyword.
+ * ```typescript
+ * export const value = 1;
+ * expect(value).toBe(1);
+ * ```
+ *
+ * @example Handle the `export default` keyword.
+ * ```typescript
+ * export default 1;
+ * ```
+ *
+ * @example Handle the `export *` keyword.
+ * ```typescript
+ * export * from "fs";
+ * ```
+ *
+ * @example Handle the `export { ... }` keyword.
+ * ```typescript
+ * export { readFileSync } from "fs";
+ * ```
+ *
+ * @example Handle the `export { ... as ... }` keyword.
+ * ```typescript
+ * export { readFileSync as read } from "fs";
+ * ```
+ */
 function testCase(code: string, id: number): string {
+  const builtCode = buildSource(`comment-test-case-${id}.ts`, code);
   return `
   /* istanbul ignore next */
   test("comment-test-case #${id}", async () => {
-      ${code}
+    const module = { exports: {} };
+    ${builtCode.code}
   });
   `;
 }
@@ -79,6 +124,7 @@ function testCase(code: string, id: number): string {
 function buildSource(
   filename: string,
   sourceCode: string,
+  format: Format = "cjs",
 ): { code?: string; map?: string } {
   const buildResult = esbuild.buildSync({
     stdin: {
@@ -90,7 +136,7 @@ function buildSource(
     platform: "node",
     target: "node20",
     write: false,
-    format: "cjs",
+    format,
     outfile: filename,
     sourcemap: "both",
     external: ["*"],
