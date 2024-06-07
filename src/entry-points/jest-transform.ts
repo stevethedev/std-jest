@@ -16,14 +16,21 @@ export default { createTransformer };
  * ```
  */
 function createTransformer() {
+  /**
+   * Process the source code.
+   * @param sourceCode - The source code to process
+   * @param filename - The filename of the source code
+   * @param transformOptions - The options for the transform
+   * @returns The transformed source code
+   */
   function process(
     sourceCode: string,
     filename: string,
     transformOptions: TransformOptions,
   ): TransformedSource {
     void transformOptions;
-    const combinedCode = getModifiedCode(filename, sourceCode);
-    const builtSource = buildSource(filename, combinedCode, true);
+    const combinedCode = getModifiedCode(sourceCode);
+    const builtSource = buildSource(filename, combinedCode);
 
     return {
       code: builtSource.code ?? "",
@@ -36,14 +43,18 @@ function createTransformer() {
   return { process };
 }
 
-function getModifiedCode(filename: string, sourceCode: string): string {
+function getModifiedCode(sourceCode: string): string {
   const testCases = getCommentCode(sourceCode).map(testCase);
-  const testCode = testDescription(filename, testCases);
+  const testCode = testDescription(testCases);
 
   return `${sourceCode}\n${testCode}`;
 }
 
-function testDescription(filename: string, testCases: string[]): string {
+function testDescription(testCases: string[]): string {
+  if (testCases.length === 0) {
+    return "";
+  }
+
   return `
     /* c8 ignore start */
     /* istanbul ignore next */
@@ -68,7 +79,6 @@ function testCase(code: string, id: number): string {
 function buildSource(
   filename: string,
   sourceCode: string,
-  createSourceMap: boolean = false,
 ): { code?: string; map?: string } {
   const buildResult = esbuild.buildSync({
     stdin: {
@@ -82,7 +92,7 @@ function buildSource(
     write: false,
     format: "cjs",
     outfile: filename,
-    sourcemap: createSourceMap && "both",
+    sourcemap: "both",
     external: ["*"],
   });
 
