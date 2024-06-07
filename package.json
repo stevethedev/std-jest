@@ -1,6 +1,6 @@
 {
   "name": "std-jest",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Steve the Dev's Jest Testing Library",
   "author": "Steven Jimenez",
   "main": "index.js",
