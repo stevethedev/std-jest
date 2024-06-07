@@ -1,5 +1,12 @@
 # std-jest
 
+## 0.1.3
+
+### Patch Changes
+
+- c62bbd8: Fix in-comment imports.
+- 8ae69fa: Stop bundling external dependencies
+
 ## 0.1.2
 
 ### Patch Changes
