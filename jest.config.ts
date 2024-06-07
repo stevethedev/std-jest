@@ -11,7 +11,6 @@ export default {
   coverageDirectory: "coverage",
   coverageProvider: "v8",
   testEnvironment: "jest-environment-node",
-  testMatch: ["<rootDir>/src/**/*.[jt]s?(x)"],
   testPathIgnorePatterns: ["/node_modules/", "/dist/", "/coverage/"],
   transform: {
     "^.+\\.m?[tj]sx?$": "./jest-transform.js",
