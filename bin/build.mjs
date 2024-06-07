@@ -47,7 +47,7 @@ async function buildFile(inputFp, outputFp) {
     platform: "node",
     target: "node20",
     format: "cjs",
-    external: ["esbuild"],
+    external: ["*"],
   });
   process.stdout.write(" done\n");
 }
