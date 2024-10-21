@@ -21,6 +21,7 @@ export default tseslint.config(
     files: ["*.js"],
     rules: {
       "@typescript-eslint/no-var-requires": "off",
+      "@typescript-eslint/no-require-imports": "off",
     },
     languageOptions: {
       globals: {
